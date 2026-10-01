@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    /* Core Styling Matrix & Resets */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-dark: #04050a;
+    --module-surface: rgba(10, 12, 22, 0.75);
+    --text-pure: #ffffff;
+    --text-muted: #5e6b7e;
+    --accent-blue: #3b82f6;
+    --kr-glow: #60a5fa;
+    --success-green: #10b981;
+    --lock-gray: #1e293b;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-pure);
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* Soft continuous deep space layout backdrop illumination */
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(96, 165, 250, 0.03) 0%, transparent 40%);
+}
+
+/* App Container Spacing Constraints */
+.app-container {
+    max-width: 1000px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 6rem 0 4rem 0;
+}
+
+/* Top Navigation Framework */
+.top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(4, 5, 10, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1000px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 1.2rem 0;
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--text-pure);
+}
+
+/* Header & Scoring Panel Styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+#user-welcome {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.score-display {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 0.6rem 1.4rem;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--kr-glow);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
+}
+
+/* SECTION 1: Progress Tree Column Layout */
+.tree-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.tier {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .tier {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dynamic State Tree Course Nodes Styling */
+.course-node {
+    background: var(--module-surface);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+}
+
+.course-node h3 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.course-node p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.course-node a {
+    position: absolute;
+    top: 2.5rem;
+    right: 2.5rem;
+    color: var(--kr-glow);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.course-node a:hover {
+    background: var(--text-pure);
+    color: var(--bg-dark);
+}
+
+.status-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+/* Core Node Progression States Indicators */
+.course-node.completed {
+    border-color: rgba(16, 185, 129, 0.15);
+}
+.course-node.completed .status-badge { background: rgba(16, 185, 129, 0.1); color: var(--success-green); }
+
+.course-node.active {
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: scale(1.01);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.05);
+}
+.course-node.active .status-badge { background: rgba(59, 130, 246, 0.15); color: var(--kr-glow); }
+
+.course-node.unlocked {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+.course-node.unlocked .status-badge { background: rgba(255, 255, 255, 0.05); color: #fff; }
+
+.course-node.locked {
+    opacity: 0.4;
+    pointer-events: none; /* Disables interaction chains across locked paths */
+    background: rgba(15, 23, 42, 0.2);
+}
+.course-node.locked .status-badge { background: rgba(0, 0, 0, 0.2); color: var(--text-muted); }
+
+/* Bottom Tracking Node State Progression Buttons */
+.course-node button {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: default;
+}
+.course-node button.done { background: rgba(16, 185, 129, 0.1); color: var(--success-green); }
+.course-node button.not-done { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); }
+
+/* SECTION 2: Vocabulary Interface & Interactive Token Highlights */
+.phrase-card {
+    background: var(--module-surface);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 3rem;
+    border-radius: 28px;
+    margin-bottom: 2rem;
+}
+
+.line {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.line.korean { font-size: 2.2rem; font-weight: 800; }
+.line.pronunciation { font-size: 1.1rem; color: var(--kr-glow); font-style: italic; }
+.line.english { font-size: 1.2rem; color: var(--text-muted); font-weight: 500; }
+
+/* Interactive Hover Glow Matrices */
+.word {
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 0.2rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.word.glow {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--text-pure) !important;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+}
+
+/* MODAL WINDOW DIALOG FOR GRAMMAR NOTES */
+#explanation-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 5, 10, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.25s ease;
+}
+
+#explanation-popup.popup-hidden {
+    opacity: 0;
+    pointer-events: none; /* Keeps hidden modal elements out of the click pipeline */
+}
+
+.popup-content {
+    background: #0d0f1d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    max-width: 500px;
+    width: 90%;
+    padding: 3rem;
+    border-radius: 28px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+#close-popup {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+#close-popup:hover {
+    color: var(--text-pure);
+}
+
+#popup-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.01em;
+}
+
+#popup-text {
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
+
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a class="nav-link" href="site.html">
+        ⇚ Home</a>
+      <a class="nav-link active" href="ko-progress.html">
+        Progress</a>
+    </div>
+  </nav>
+  <div class="app-container">
+
+    <header>
+      <h1 id="user-welcome">Nice to see you again!</h1>
+      <div class="score-display">✨ Score Points: <span id="user-score">0</span></div>
+    </header>
+
+    <!-- SECTION 1: COURSE PROGRESSION GRAPH -->
+    <h2 class="section-title">Your Learning Progression Path</h2>
+    <div class="tree-layout" id="tree-container"></div>
+
+    <!-- SECTION 2: INTERACTIVE PRACTICE COMPONENT -->
+    <!-- <h2 class="section-title">Active Class Exercise Panel</h2>
+    <div id="phrases-container"></div>  -->
+
+  </div>
+
+  <!-- MODAL ELEMENT FOR GRAMMAR BREAKDOWNS -->
+  <div id="explanation-popup" class="popup-hidden">
+    <div class="popup-content">
+      <button id="close-popup">×</button>
+      <h3 id="popup-title">Grammar Notes</h3>
+      <p id="popup-text"></p>
+    </div>
+  </div>
+
+  <!-- Link to your separate JS script file -->
+</body>
+
+</html>
+<script type="module">
+
+
+  import phraseData from './korean.js';
+  import phraseData3 from './koreanCasual.js';
+  import phraseData2 from './korean.js';
+
+  import { mockUserProfile, courseCatalog } from './korean.js';
+
+
+  // Simple tracking click handler
+  document.querySelectorAll('.course-node').forEach(node => {
+    node.addEventListener('click', () => {
+      if (node.classList.contains('locked')) {
+        // alert("🔒 Complete the prerequisite courses first!");
+      } else {
+        // Direct them to the vocabulary page we built earlier!
+        window.location.href = `section.html?course=${node.id}`;
+      }
+    });
+  });
+  // ----------------------------------------------------------------
+
+  // --- DATABASE SCHEMAS & MOCK PROFILES ---
+  // Phrase Data mimicking your schema structure
+  const activePhraseData = {
+    "name": "korean_1 ",
+    "dictionary": [
+      {
+        kr: "한국어를",
+        pr: "hangugeoreul",
+        enTargets: ["korean", "language"], // Supports multiple words in an array
+        explanation: "한국어 (Korean language) combined with the direct object particle 를 because it ends cleanly on a vowel sound."
+      },
+      {
+        kr: "좋아해요.",
+        pr: "joahaeyo",
+        enTargets: ["like"],
+        explanation: "Polite base form conjugation of the action root 좋아하다 (to like/enjoy)."
+      }
+    ],
+  };
+
+  // --- INITIALIZE INTERFACE FROM DATA ---
+  let allMessages = [
+    'Ready to start learning', 'Nice to see you again',
+    'Your language is ready to start',
+
+    'Hello',
+    "Let's pick up right where you left off.",
+    "Your next lesson is waiting!",
+    "Ready to level up your skills?",
+    "Time to make some progress today.",
+
+    "Jump right back in."
+  ];
+
+  let a_message = allMessages[Math.floor(Math.random() * ((allMessages.length - 1) + 1))];
+  document.getElementById('user-welcome').textContent = `${a_message} , ${mockUserProfile.username}!`;
+  document.getElementById('user-score').textContent = mockUserProfile.scorePoints;
+
+  // Render Progress Tree Architecture
+  function generateProgressTree() {
+    const treeBox = document.getElementById('tree-container');
+    treeBox.innerHTML = '';
+    let activeTier = null;
+
+    courseCatalog.forEach((course, index) => {
+      // Group items into vertical columns of 2 nodes
+      if (index % 2 === 0) {
+        activeTier = document.createElement('div');
+        activeTier.className = 'tier';
+        treeBox.appendChild(activeTier);
+      }
+
+      // Apply database rule states
+      let status = "locked";
+      let icon = "🔒";
+
+      if (mockUserProfile.completed.includes(course.id)) {
+        status = "completed";
+        icon = "✓";
+      } else if (index === 0 || mockUserProfile.completed.includes(courseCatalog[index - 1].id)) {
+        if (index === mockUserProfile.completed.length) {
+          status = "active";
+          icon = "✏️";
+        } else {
+          status = "unlocked";
+          icon = "🔓";
+        }
+
+      }
+      // <a href="cp.html?course=korean_1">Start Korean 1 Practice</a>
+      // <a href="cp.html?course=korean_2">Start Korean 2 Practice</a>
+      const node = document.createElement('div');
+      node.className = `course-node ${status}`;
+
+      node.innerHTML = `
+            <span class="status-badge"> ${icon}</span>
+            <h3>${course.name}</h3>
+            <a class"study-link" href="section.html?section=${course.id}">Practice</a>
+            <p>${course.desc}</p>
+            <button id="done" class="${status === "completed" ? "done" : "not-done"}">
+            ${icon === "✓" ? "completed" : "in-progress"}</button>
+            `;
+      // const done = document.getElementById('done');
+      // done.addEventListener('click', () => {
+
+      // });
+
+      activeTier.appendChild(node);
+    });
+  }
+    /* Fix: Unified matching tokens without unintended space characters
+      function buildVocabularyWorkout() {
+        const displayArea = document.getElementById('phrases-container');
+        if (!displayArea) return; // Guard clause
+        displayArea.innerHTML = '';
+
+        const card = document.createElement('div');
+        card.className = 'phrase-card';
+
+        let krHTML = `<p class="line korean">`;
+        let prHTML = `<p class="line pronunciation">`;
+
+        activePhraseData.dictionary.forEach((item, wIndex) => {
+          const token = `w-\${wIndex}`; // Normalized string layout
+          krHTML += `<span class="word" data-link="\${token}" data-note="item.explanation">{item.kr}</span> `;
+          prHTML += `<span class="word" data-link="\${token}" data-note="item.explanation">{item.pr}</span> `;
+        });
+        krHTML += `</p>`;
+        prHTML += `</p>`;
+
+        // Ensure fullEnglish exists in schemas fallback boundaries
+        const targetTextString = activePhraseData.fullEnglish || "I like Korean.";
+        const baseWords = targetTextString.split(' ');
+        let enHTML = `<p class="line english">`;
+
+        baseWords.forEach(word => {
+          const sanitized = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").toLowerCase();
+          let targetToken = null;
+
+          activePhraseData.dictionary.forEach((item, wIndex) => {
+            const normalTargets = item.enTargets.map(v => v.toLowerCase());
+            if (normalTargets.includes(sanitized)) {
+              targetToken = `w-${wIndex}`;
+            }
+          });
+
+          if (targetToken) {
+            enHTML += `<span class="word" data-link="${targetToken}">${word}</span> `;
+          } else {
+            enHTML += `${word} `;
+          }
+        });
+        enHTML += `</p>`;
+
+        card.innerHTML = krHTML + prHTML + enHTML;
+        displayArea.appendChild(card);
+      }
+
+  // Build Vocabulary Array-Search Match Component
+  function buildVocabularyWorkout() {
+    const displayArea = document.getElementById('phrases-container');
+    displayArea.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'phrase-card';
+
+    let krHTML = `<p class="line korean">`;
+    let prHTML = `<p class="line pronunciation">`;
+
+    activePhraseData.dictionary.forEach((item, wIndex) => {
+      const token = `w-\ ${wIndex}`;
+      krHTML += `<span class="word" data-link="\ ${token}" data-note="item.explanation">${item.kr}</span> `;
+      prHTML += `<span class="word" data-link="\ ${token}" data-note="item.explanation">${item.pr}</span> `;
+    });
+    krHTML += `</p>`;
+    prHTML += `</p>`;
+
+    // Look through full English string array to wrap matching targets
+    const baseWords = activePhraseData.fullEnglish.split(' ');
+    let enHTML = `<p class="line english">`;
+
+    baseWords.forEach(word => {
+      const sanitized = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").toLowerCase();
+      let targetToken = null;
+
+      activePhraseData.dictionary.forEach((item, wIndex) => {
+        const normalTargets = item.enTargets.map(v => v.toLowerCase());
+        if (normalTargets.includes(sanitized)) {
+          targetToken = `w-${wIndex}`;
+        }
+      });
+
+      if (targetToken) {
+        enHTML += `<span class="word" data-link="${targetToken}">${word}</span> `;
+      } else {
+        enHTML += `${word} `;
+      }
+    });
+    enHTML += `</p>`;
+
+    card.innerHTML = krHTML + prHTML + enHTML;
+    displayArea.appendChild(card);
+  }*/
+
+  // --- EVENT DELEGATION FOR HOVER & POPUP ---
+  const rootArea = document.body;
+  const modal = document.getElementById('explanation-popup');
+
+  // Word Hover GLOW IN
+  rootArea.addEventListener('mouseover', (e) => {
+    if (e.target.classList.contains('word')) {
+      const link = e.target.getAttribute('data-link');
+      document.querySelectorAll(`[data-link="${link}"]`).forEach(el => el.classList.add('glow'));
+    }
+  });
+
+  // Word Hover GLOW OUT
+  rootArea.addEventListener('mouseout', (e) => {
+    if (e.target.classList.contains('word')) {
+      const link = e.target.getAttribute('data-link');
+      document.querySelectorAll(`[data-link="${link}"]`).forEach(el => el.classList.remove('glow'));
+    }
+  });
+
+  // Word Click GRAMMAR POPUP OPEN
+  rootArea.addEventListener('click', (e) => {
+    if (e.target.classList.contains('word') && e.target.hasAttribute('data-note')) {
+      document.getElementById('popup-title').textContent = `Grammar Notes: "${e.target.textContent}"`;
+      document.getElementById('popup-text').textContent = e.target.getAttribute('data-note');
+      modal.classList.remove('popup-hidden');
+    }
+  });
+
+  // POPUP CLOSE
+  document.getElementById('close-popup').addEventListener('click', () => modal.classList.add('popup-hidden'));
+
+  // Run engines once page links establish
+  window.addEventListener('DOMContentLoaded', () => {
+    generateProgressTree();
+    buildVocabularyWorkout();
+  });
+
+</script>
+
+</body>
+
+</html>

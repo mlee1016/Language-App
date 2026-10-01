@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Language Dashboard with STT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #4a5568;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .score-badge {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    .setup-screen,
+    .score-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      gap: 15px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .score-big {
+      font-size: 48px;
+      font-weight: bold;
+      color: #333;
+      margin: 10px 0;
+    }
+
+    .rank-medal {
+      font-size: 18px;
+      font-weight: bold;
+      color: #666;
+      background: #f0f0f0;
+      padding: 5px 15px;
+      border-radius: 15px;
+    }
+
+    .btn {
+      background: #4a5568;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      width: 80%;
+      max-width: 250px;
+    }
+
+    .btn.jp-style {
+      background: #0084ff;
+    }
+
+    .btn.kr-style {
+      background: #ff4b5c;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      background: #f9f9f9;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bot {
+      background: #e4e6eb;
+      align-self: flex-start;
+      color: black;
+    }
+
+    .user {
+      background: #4a5568;
+      align-self: flex-end;
+      color: white;
+    }
+
+    .hint {
+      font-size: 12px;
+      margin-top: 5px;
+      opacity: 0.8;
+      font-style: italic;
+      border-top: 1px dashed rgba(255, 255, 255, 0.4);
+      padding-top: 4px;
+    }
+
+    .bot .hint {
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    .input-area {
+      padding: 10px;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: none;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    .mic-btn {
+      background: #cbd5e1;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .mic-btn.recording {
+      background: #ef4444;
+      animation: pulse 1.5s infinite;
+      color: white;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .system-bubble {
+      align-self: center;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin: 5px 0;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .prompt {
+      color: #555;
+      background: #ffeeba;
+    }
+
+    .feedback {
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .correct {
+      color: #28a745;
+      background: #d4edda;
+    }
+
+    .incorrect {
+      color: #dc3545;
+      background: #f8d7da;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chat-container">
+    <div id="mainHeader" class="header">
+      🌐 Language Practice
+      <div id="liveScore" class="score-badge" style="display: none;">Score: 0</div>
+    </div>
+
+    <div id="setup" class="setup-screen">
+      <h3>Press to start:</h3>
+      <p>Click the 🎙️ button to speak your answer natively!</p>
+      <!--<button class="btn jp-style" id="start">🇯🇵 Japanese Directions</button>-->
+      <button class="btn kr-style" id="start">🇰🇷 Korean Essentials</button>
+    </div>
+
+    <div id="chatBox" class="chat-box"></div>
+
+    <div id="scoreScreen" class="score-screen" style="display: none;">
+      <h2 id="endTitle">Practice Complete!</h2>
+      <div class="score-big" id="finalScoreText">0/0</div>
+      <div class="rank-medal" id="rankMedalText">Rank: Bronze 🥉</div>
+      <p id="accuracyText">Accuracy: 0%</p>
+      <button class="btn" id="restartBtn" onclick="resetChat()">Try Again </button>
+    </div>
+    <!--  
+    <div id="inputArea" class="input-area">
+      <button id="micBtn" class="mic-btn" onclick="toggleSTT()" title="Speak Response">🎙️</button>
+      <input type="text" id="userInput" placeholder="Say or Type response..." onkeypress="handleKeyPress(event)">
+      <button class="btn" id="sendBtn" style="width: auto; padding: 10px 15px; margin: 0;"
+        onclick="sendMessage()">Send</button>
+    </div> -->
+    <div id="inputArea" class="input-area">
+      <button id="micBtn" class="mic-btn" title="Speak Response">🎙️</button>
+      <input type="text" id="userInput" placeholder="Say or Type response...">
+      <button class="btn" id="sendBtn" style="width: auto; padding: 10px 15px; margin: 0;">Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import dialog from './japanese.js';
+    console.log("dialog: ", dialog);
+    const dialogueData = {
+      jp: [
+        {
+          speaker: 1, phrase: "すみません。駅はどこですか。", pr: "Sumimasen. Eki wa doko desu ka.",
+          en: "Excuse me. Where is the station?", alternatives: ["すみませんえきはどこですか", "すいませんえきはどこですか", "えきはどこですか", "sumimasen eki wa doko desu ka"]
+        },
+        {
+          speaker: 2, phrase: "あそこです。真っ直ぐ行ってください。", pr: "Asoko desu. Massugu itte kudasai.",
+          en: "It is over there. Go straight, please.", alternatives: []
+        },
+        {
+          speaker: 1, phrase: "信号を右ですか、左ですか。", pr: "Shingō wo migi desu ka, hidari desu ka.",
+          en: "At the traffic light, right or left?", alternatives: ["しんごうをみぎですかひだりですか", "shingo wo migi desu ka hidari desu ka"]
+        },
+        {
+          speaker: 2, phrase: "左に曲がってください。", pr: "Hidari ni magatte kudasai.",
+          en: "Turn left, please.", alternatives: ["Hidari ni magatte kudasai."]
+        },
+        {
+          speaker: 1, phrase: "分かりました。ありがとう。", pr: "Wakarimashita. Arigatō.",
+          en: "I understand. Thank you.", alternatives: ["わかりましたありがとう", "wakarimashita arigatou"]
+        },
+        {
+          speaker: 2, phrase: "いいえ。", pr: "Iie.", en: "You're welcome.",
+          alternatives: ["Iie", "iie"]
+        }
+      ],
+      kr: [
+        { phrase: "안녕하세요", pr: "annyeonghaseyo", en: "Hello", alternatives: ["안녕하세요", "annyeonghaseyo"] },
+        { phrase: "감사합니다", pr: "gamsahabnida", en: "Thank you", alternatives: ["감사합니다", "gamsahabnida", "고맙습니다"] },
+        { phrase: "죄송합니다", pr: "joesonghabnida", en: "I'm sorry", alternatives: ["죄송합니다", "미안합니다"] },
+        { phrase: "주세요", pr: "juseyo", en: "Please give me...", alternatives: ["주세요", "juseyo"] },
+        { phrase: "이거 얼마예요?", pr: "igeo eolmayeyo?", en: "How much is this?", alternatives: ["이거 얼마예요", "이거얼마예요"] },
+        { phrase: "화장실 어디예요?", pr: "hwajangsil eodiyeyo?", en: "Where is the restroom?", alternatives: ["화장실 어디예요", "화장실어디에있나요"] },
+        { phrase: "도와주세요", pr: "dowajuseyo", en: "Please help me", alternatives: ["도와주세요", "도와줘"] }
+      ]
+    };
+
+    let currentLanguage = 'kr';
+    let activeDialogue = [];
+    let currentIndex = 0;
+    let userScore = 0;
+    const pointsPerCorrect = 10;
+    // Web Speech API Initialization
+    let recognition = null;
+    let isRecording = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value = transcript;
+        stopRecordingState();
+      };
+
+      recognition.onerror = () => { stopRecordingState(); };
+      recognition.onend = () => { stopRecordingState(); };
+    } else {
+      document.getElementById('micBtn').style.display = 'none';
+      console.log("Speech recognition not supported in this browser.");
+    }
+
+    function selectLanguage(lang) {
+      currentLanguage = lang;
+      activeDialogue = dialogueData[lang];
+
+      let header = document.getElementById('mainHeader');
+      let sendBtn = document.getElementById('sendBtn');
+      let restartBtn = document.getElementById('restartBtn');
+
+      if (lang === 'jp') {
+        header.style.background = '#0084ff';
+        header.innerHTML = `🇯🇵 Japanese Directions <div id="liveScore" class="score-badge">Score: 0</div>`;
+        sendBtn.style.background = '#0084ff';
+        restartBtn.style.background = '#0084ff';
+        if (recognition) recognition.lang = 'ja-JP';
+      } else {
+        header.style.background = '#ff4b5c';
+        header.innerHTML = `🇰🇷 Korean Essentials <div id="liveScore" class="score-badge">Score: 0</div>`;
+        sendBtn.style.background = '#ff4b5c';
+        restartBtn.style.background = '#ff4b5c';
+        if (recognition) recognition.lang = 'ko-KR';
+      }
+      startChat();
+    }
+
+    function toggleSTT() {
+      if (!recognition) return;
+      if (isRecording) {
+        recognition.stop();
+        stopRecordingState();
+      } else {
+        isRecording = true;
+        document.getElementById('micBtn').classList.add('recording');
+        document.getElementById('userInput').placeholder = "Listening... Speak now!";
+        recognition.start();
+      }
+    }
+
+    function stopRecordingState() {
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('recording');
+      document.getElementById('userInput').placeholder = currentLanguage === 'jp' ? "Say or Type : Kanji, Kana, or Romaji..." : "Type Hangul or Romanization...";
+    }
+
+    function startChat() {
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('scoreScreen').style.display = 'none';
+      document.getElementById('chatBox').style.display = 'flex';
+      document.getElementById('inputArea').style.display = 'flex';
+      document.getElementById('liveScore').style.display = 'block';
+
+      if (currentLanguage === 'jp' && activeDialogue[currentIndex].speaker === 2) {
+        playBotTurn();
+      } else {
+        showUserPrompt();
+      }
+    }
+    function playBotTurn() {
+      if (currentIndex >= activeDialogue.length) return;
+      let currentLine = activeDialogue[currentIndex];
+      appendMessage(currentLine.phrase, ` ${currentLine.pr}`, 'bot');
+      currentIndex++;
+
+      if (currentIndex < activeDialogue.length) {
+        showUserPrompt();
+      } else {
+        showEndScreen();
+      }
+    }
+    function showUserPrompt() {
+      let currentLine = activeDialogue[currentIndex];
+      let promptDiv = document.createElement('div');
+      promptDiv.classList.add('system-bubble', 'prompt');
+      promptDiv.innerHTML = `<strong>Your Turn!</strong> Say or Type in ${(currentLanguage === 'jp' ? 'Japanese' : 'Korean')}: <br>"<strong>${currentLine.en}</strong>"`;
+      document.getElementById('chatBox').appendChild(promptDiv);
+      scrollChat();
+    }
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') sendMessage();
+    }
+    function sendMessage() {
+      let inputField = document.getElementById('userInput');
+      let userInputText = inputField.value.trim();
+      if (!userInputText) return;
+      let currentLine = activeDialogue[currentIndex];
+      const cleanText = (str) => str.replace(/[?？!！~\s。]/g, "");
+      const cleanInput = cleanText(userInputText);
+      const cleaned = currentLine.phrase.replace(/[\s.。]/g, "");
+
+
+      const isCorrect = cleanInput === cleaned || currentLine.alternatives.some(alt => cleanText(alt) === cleanInput);
+
+      //cleanInput === cleanText(currentLine.phrase) || currentLine.alternatives.some(alt => cleanText(alt) === cleanInput);
+      appendMessage(userInputText, "Your input", 'user');
+      console.log(cleaned, "====", cleanInput);
+      inputField.value = '';
+      let feedbackDiv = document.createElement('div');
+      feedbackDiv.classList.add('system-bubble', 'feedback');
+      if (isCorrect) {
+        userScore += pointsPerCorrect;
+        document.getElementById('liveScore').innerText = ` Score: ${userScore}`;
+        feedbackDiv.classList.add('correct');
+        feedbackDiv.innerHTML = " ✓ Correct! (+10 Points)";
+      } else {
+        feedbackDiv.classList.add('incorrect');
+        feedbackDiv.innerHTML =
+          ` ✕ Not quite.<br>
+          Standard expression:<br>
+          <strong>${currentLine.phrase}</strong>
+          <br><strong>${currentLine.pr}</strong>
+          `;
+      }
+      document.getElementById('chatBox').appendChild(feedbackDiv);
+      currentIndex++;
+      setTimeout(() => {
+        if (currentIndex < activeDialogue.length) {
+          if (currentLanguage === 'jp' && activeDialogue[currentIndex].speaker === 2) {
+            playBotTurn();
+          } else {
+            showUserPrompt();
+
+          }
+        } else {
+          showEndScreen();
+
+        }
+      }, 1200);
+    }
+    function showEndScreen() {
+      document.getElementById('chatBox').style.display = 'none';
+      document.getElementById('inputArea').style.display = 'none';
+      document.getElementById('liveScore').style.display = 'none';
+      let totalUserQuestions = currentLanguage === 'jp' ? activeDialogue.filter(line => line.speaker === 1).length : activeDialogue.length;
+      let maxScore = totalUserQuestions * pointsPerCorrect;
+      let accuracy = Math.round((userScore / maxScore) * 100);
+      document.getElementById('endTitle').style.color = (currentLanguage === 'jp') ? '#0084ff' : '#ff4b5c';
+      document.getElementById('finalScoreText').innerText = `${userScore} / ${maxScore}`;
+      document.getElementById('accuracyText').innerText = `Accuracy: ${accuracy}%`;
+      let rankMedal = "";
+      if (accuracy === 100) rankMedal = "Rank: Diamond 💎 Perfect!";
+      else if (accuracy >= 80) rankMedal = "Rank: Gold 🥇 Excellent!";
+      else if (accuracy >= 50) rankMedal = "Rank: Silver 🥈 Good Job!";
+      else rankMedal = "Rank: Bronze 🥉 Keep Practicing!";
+      document.getElementById('rankMedalText').innerText = rankMedal;
+      document.getElementById('scoreScreen').style.display = 'flex';
+    }
+    function resetChat() {
+      currentIndex = 0;
+      userScore = 0;
+      document.getElementById('chatBox').innerHTML = '';
+      document.getElementById('scoreScreen').style.display = 'none';
+      document.getElementById('mainHeader').style.background = '#4a5568';
+      document.getElementById('mainHeader').innerHTML = "🌐 Language Practice";
+      document.getElementById('setup').style.display = 'flex';
+    }
+    function appendMessage(mainText, subText, type) {
+      let chatBox = document.getElementById('chatBox');
+      let msgDiv = document.createElement('div');
+      msgDiv.classList.add('message', type);
+      msgDiv.innerHTML = `<div>${mainText}</div><div class="hint">
+            ${subText}</div>`;
+      chatBox.appendChild(msgDiv);
+      scrollChat();
+    }
+    function scrollChat() {
+      let chatBox = document.getElementById('chatBox');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Attach Text-to-Speech (TTS) click event
+    const start = document.getElementById('start');
+    const mic = document.getElementById("micBtn");
+    const userInput = document.getElementById("userInput");
+    const sendInput = document.getElementById("sendBtn");
+
+    start.addEventListener('click', () => selectLanguage('kr'));
+    mic.addEventListener('click', () => toggleSTT());
+    userInput.addEventListener('keypress', (event) => handleKeyPress(event));
+    sendInput.addEventListener('click', () => sendMessage());
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn Korean - Parallaxy Portal</title>
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link
+    href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+KR:wght@500;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Unified Master Parallax Wrapper -->
+  <section class="parallax-universe">
+
+    <!-- Deep Background Layer: Space Grid -->
+    <div class="parallax-layer layer-grid scroll-parallax" data-speed-y="0.15" data-speed-x="0.05"></div>
+
+    <!-- Midground Layer: Multi-axis Drifting Hangul Characters -->
+    <div class="parallax-layer layer-characters">
+      <span class="p-char char-1 scroll-parallax" data-speed-y="-0.7" data-speed-x="0.4">한</span>
+      <span class="p-char char-2 scroll-parallax" data-speed-y="1.3" data-speed-x="-0.3">글</span>
+      <span class="p-char char-3 scroll-parallax" data-speed-y="-0.5" data-speed-x="-0.2">아</span>
+      <span class="p-char char-4 scroll-parallax" data-speed-y="1.8" data-speed-x="0.5">요</span>
+    </div>
+
+    <!-- Foreground Interactive Application Layer -->
+    <div class="parallax-layer layer-foreground scroll-parallax" data-speed-y="0.9" data-speed-x="0">
+      <div class="app-hero-container">
+
+        <!-- Main Header Title Blocks -->
+        <div class="title-block">
+          <span class="badge">Next-Gen Korean Lab</span>
+          <h1 class="main-title">Master Korean <br><span class="gradient-text">Through Motion.</span></h1>
+          <p class="subtitle">Interact with native Korean learning modules directly inside our dynamic 
+            site.</p>
+            <a class="badge" href="ko-progress.html">Progress</a>
+        </div>
+
+        <!-- FEATURE 1: Interactive TTS Flashcards -->
+        <div class="dashboard-module">
+          <h2 class="module-title">1. Vocabulary Cards <span class="action-pill">Click for TTS Audio</span></h2>
+          <div class="cards-grid">
+            <div class="flashcard kr-card" onclick="speakKorean('안녕하세요', 'ko-KR')">
+              <span class="flag-tag">Formal Greeting</span>
+              <div class="script">안녕하세요</div>
+              <div class="roman">Annyeonghaseyo</div>
+              <div class="trans">Hello / Good morning</div>
+            </div>
+            <div class="flashcard kr-card" onclick="speakKorean('감사합니다', 'ko-KR')">
+              <span class="flag-tag">Polite Gratitude</span>
+              <div class="script">감사합니다</div>
+              <div class="roman">Gamsahabnida</div>
+              <div class="trans">Thank you very much</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE 2: Reading & Pronunciation Practice (STT) -->
+        <div class="dashboard-module">
+          <h2 class="module-title">2. Reading & Voice Practice <span class="action-pill">AI Audio Analysis</span></h2>
+          <div class="stt-grid">
+            <div class="voice-box">
+              <div class="target-title">Target Phrase 1 (Beginner)</div>
+              <p class="phrase" id="t-kr1">반갑습니다</p>
+              <p class="roman-hint">Bangapsuimnida (Nice to meet you)</p>
+              <button class="record-btn" id="btn-kr1"
+                onclick="runKoreanSTT('반갑습니다', 'ko-KR', 'feedback-kr1', 'btn-kr1')">🎤 Practice Speaking</button>
+              <div class="stt-output" id="feedback-kr1">Awaiting your recording...</div>
+            </div>
+            <div class="voice-box">
+              <div class="target-title">Target Phrase 2 (Intermediate)</div>
+              <p class="phrase" id="t-kr2">한국어를 공부해요</p>
+              <p class="roman-hint">Hangugoreul gongbuhaeyo (I study Korean)</p>
+              <button class="record-btn" id="btn-kr2"
+                onclick="runKoreanSTT('한국어를 공부해요', 'ko-KR', 'feedback-kr2', 'btn-kr2')">🎤 Practice Speaking</button>
+              <div class="stt-output" id="feedback-kr2">Awaiting your recording...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE 3: Interactive Multi-Choice Particles Quiz -->
+        <div class="dashboard-module">
+          <h2 class="module-title">3. Topic vs Subject Particle Check</h2>
+          <div class="quiz-box">
+            <p class="question">Which marker correctly fills the blank to set the emphasis as a broad general topic
+              statement: "The weather **[Topic Marker]** is good today." <br><br><strong>오늘 날씨(__) 좋아요.</strong></p>
+            <div class="options-layout">
+              <button class="option-btn" onclick="checkAnswer(this, false)">가 (ga) — Subject Marker</button>
+              <button class="option-btn correct" onclick="checkAnswer(this, true)">는 (neun) — Topic Marker</button>
+              <button class="option-btn" onclick="checkAnswer(this, false)">를 (reul) — Object Marker</button>
+            </div>
+            <div class="quiz-explanation" id="quiz-msg">Select an option to evaluate your syntax proficiency.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <script >
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // -------------------------------------------------------------
+        // 1. ENGINE CONTROL: MULTI-AXIS PARALLAX RENDERING LOOP
+        // -------------------------------------------------------------
+        const parallaxItems = document.querySelectorAll(".scroll-parallax");
+        let activeScrollY = window.scrollY;
+        let renderFlag = false;
+
+        function executeParallaxStep() {
+          parallaxItems.forEach(element => {
+            const vy = parseFloat(element.getAttribute("data-speed-y")) || 0;
+            const vx = parseFloat(element.getAttribute("data-speed-x")) || 0;
+
+            // Coordinate displacements calculated over active scroll offsets
+            const displacementY = activeScrollY * vy * 0.35;
+            const displacementX = activeScrollY * vx * 0.35;
+
+            // Forces hardware accelerated rendering inside a single composite call
+            element.style.transform = `translate3d(${displacementX}px, ${displacementY}px, 0)`;
+          });
+          renderFlag = false;
+        }
+
+        window.addEventListener("scroll", () => {
+          activeScrollY = window.scrollY;
+          if (!renderFlag) {
+            window.requestAnimationFrame(executeParallaxStep);
+            renderFlag = true;
+          }
+        });
+      });
+
+      // -------------------------------------------------------------
+      // 2. KOREAN SPEECH SYNTHESIS CORE (TTS)
+      // -------------------------------------------------------------
+      function speakKorean(audioString, systemLocale) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel(); // Terminate preceding audio pipelines
+          const narrationUnit = new SpeechSynthesisUtterance(audioString);
+          narrationUnit.lang = systemLocale; // Configured to 'ko-KR'
+          narrationUnit.rate = 0.85;        // Paced learning cadence
+          window.speechSynthesis.speak(narrationUnit);
+        } else {
+          console.error("Text-to-speech engine profile is unavailable in this environment.");
+        }
+      }
+
+      // ------------------------------------------------------------- 
+      // 3. KOREAN SPEECH RECOGNITION CORE (STT)
+      // -------------------------------------------------------------
+      function runKoreanSTT(phraseTemplate, systemLocale, UIOutputElementId, UIButtonId) {
+        const BrowserRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!BrowserRecognitionAPI) {
+          alert("The Web Speech API profile is missing in this browser. Please evaluate using Google Chrome.");
+          return;
+        }
+
+        const audioCaptureCore = new BrowserRecognitionAPI();
+        audioCaptureCore.lang = systemLocale;
+        audioCaptureCore.interimResults = false;
+        audioCaptureCore.maxAlternatives = 1;
+
+        const interfaceBox = document.getElementById(UIOutputElementId);
+        const triggerBtn = document.getElementById(UIButtonId);
+
+        triggerBtn.classList.add("recording");
+        triggerBtn.innerText = "Listening closely...";
+        interfaceBox.innerText = "Analyzing Hangul phonetics...";
+        interfaceBox.className = "stt-output";
+
+        audioCaptureCore.start();
+
+        audioCaptureCore.onresult = (streamEvent) => {
+          const structuralTranscript = streamEvent.results.transcript.trim();
+
+          // Character stripping matrices for string verification comparisons
+          const strippedTranscript = structuralTranscript.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()?]/g, "");
+          const strippedTemplate = phraseTemplate.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+
+          if (strippedTranscript === strippedTemplate) {
+            interfaceBox.innerText = ` 참 잘했어요! (Excellent!) You said: "${structuralTranscript}"`;
+            interfaceBox.className = "stt-output success";
+          } else {
+            interfaceBox.innerText = ` Close match! Detected: "${structuralTranscript}". Try aligning your cadence to match: "${phraseTemplate}".`;
+            interfaceBox.className = "stt-output error";
+          }
+        };
+
+        audioCaptureCore.onerror = (err) => {
+          interfaceBox.innerText = `Linguistic Parsing Error: Missing clear voice input signal.`;
+          interfaceBox.className = "stt-output error";
+        };
+
+        audioCaptureCore.onend = () => {
+          triggerBtn.classList.remove("recording");
+          triggerBtn.innerText = "🎤 Practice Speaking";
+        };
+      }
+
+      // -------------------------------------------------------------
+      // 4. INTERACTIVE QUIZ EVALUATION STATE
+      // -------------------------------------------------------------
+      function checkAnswer(selectedButton, statusFlag) {
+        const parentContainer = selectedButton.closest(".options-layout");
+        const optionsArray = parentContainer.querySelectorAll(".option-btn");
+        const evaluationBox = document.getElementById("quiz-msg");
+
+        // Lock selection parameters once validated
+        optionsArray.forEach(button => {
+          button.disabled = true;
+          if (button.classList.contains("correct")) {
+            button.classList.add("validated-correct");
+          } else {
+            button.classList.add("validated-wrong");
+          }
+        });
+
+        if (statusFlag) {
+          evaluationBox.innerText = " Correct! '는' (neun) serves as the topic marker following the vowel-ending noun '날씨' (weather) to designate the theme of the sentence.";
+          evaluationBox.style.color = "#10b981";
+        } else {
+          evaluationBox.innerText = " Incorrect. Remember that '는' (neun) establishes general settings or contextual topics, while '가' (ga) focuses specifically on marking immediate actors/subjects.";
+          evaluationBox.style.color = "#ef4444";
+        }
+      }
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,440 @@
+<!-- ===================================================== -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Korean Speaking Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0b0b1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Container with Animated Space Background */
+    .space-container {
+      position: relative;
+      width: 480px;
+      height: 320px;
+      background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 30px 20px;
+      box-sizing: border-box;
+    }
+
+    /* Moving Background Stars Layer */
+    .space-container::before {
+      content: "";
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      background-image:
+        radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255, 255, 255, .1) 1px, transparent 30px);
+      background-size: 550px 550px, 350px 350px;
+      animation: spaceFlyby 25s linear infinite;
+      opacity: 0.5;
+      z-index: 1;
+    }
+
+    .shooting-star {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(-45deg, #5f9ea0, rgba(0, 0, 0, 0));
+      filter: drop-shadow(0 0 6px #00d4ff);
+      animation: tail 3s ease-in-out infinite, shooting 3s ease-in-out infinite;
+      transform: rotate(-45deg);
+      z-index: 1;
+    }
+
+    /* Test Text Elements */
+    .content-box {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      width: 100%;
+    }
+
+    .label {
+      color: #00d4ff;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+
+    .english-prompt {
+      color: #ffffff;
+      font-size: 2.2rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+      margin-bottom: 20px;
+    }
+
+    .user-speech-box {
+      color: #a0a5c0;
+      font-size: 1.2rem;
+      min-height: 30px;
+      font-style: italic;
+    }
+
+    /* Status & Feedback Text */
+    #status-text {
+      position: relative;
+      z-index: 2;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+    }
+
+    .listening {
+      color: #ffbc00;
+      text-shadow: 0 0 8px #ffbc00;
+    }
+
+    .correct {
+      color: #00f5d4;
+      text-shadow: 0 0 12px #00f5d4;
+    }
+
+    .incorrect {
+      color: #ff0055;
+      text-shadow: 0 0 12px #ff0055;
+    }
+
+    /* Countdown Line */
+    .timer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #00d4ff, #00f5d4);
+      width: 100%;
+      z-index: 2;
+      transform-origin: left;
+    }
+
+    .animate-timer {
+      animation: countdown 8s linear forwards;
+      /* 8 seconds to listen and evaluate */
+    }
+
+    /* Animations */
+    @keyframes spaceFlyby {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-350px);
+      }
+    }
+
+    @keyframes countdown {
+      from {
+        transform: scaleX(1);
+      }
+
+      to {
+        transform: scaleX(0);
+      }
+    }
+
+    @keyframes tail {
+
+      0%,
+      100% {
+        width: 0;
+      }
+
+      30% {
+        width: 100px;
+      }
+    }
+
+    @keyframes shooting {
+      0% {
+        transform: translateX(0) translateY(0) rotate(-45deg);
+      }
+
+      100% {
+        transform: translateX(500px) translateY(500px) rotate(-45deg);
+      }
+    }
+
+    .top-nav {
+      background: #ffffff;
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+    }
+
+    .nav-container {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: #6c757d;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: #f3f4f6;
+      color: #4f46e5;
+    }
+
+    .nav-link.active {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="top-nav">
+    <div id="na" class="nav-container">
+
+    </div>
+  </nav>
+  <div class="space-container" id="spaceContainer">
+    <div class="content-box">
+      <div class="label"> Say in Japanese:</div>
+      <div id="englishPrompt" class="english-prompt">Loading...</div>
+      <div id="userSpeech" class="user-speech-box">press anywhere to start...</div>
+    </div>
+
+    <div id="status-text" class="listening">Preparing...</div>
+
+    <div id="timer" class="timer-bar"></div>
+  </div>
+
+  <script type="module">
+    // phrases.js
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedCourse = urlParams.get('section');
+    const selectedSp = urlParams.get('s');
+
+    const na = document.getElementById('na');
+    na.innerHTML = `
+      
+      <a class="nav-link" href="site.html ">Home</a>
+      <a class="nav-link" href="ko-progress.html">Progress</a>
+      <a class="nav-link" href="study-cards.html?section=${selectedCourse}&s=${selectedSp}">Study Card</a>
+      <a class="nav-link" href="practice-card.html?section=${selectedCourse}&s=${selectedSp}">Practice card</a>
+      <a class="nav-link" href="practice-sp.html?section=${selectedCourse}&s=${selectedSp}">Practice Pronuciation</a>
+      <a class="nav-link" href="ko-rd.html?section=${selectedCourse}&s=${selectedSp}">Practice hangul</a>
+      <a class="nav-link active" href="test-korean.html?section=${selectedCourse}&s=${selectedSp}">Test K</a>
+    `
+    const japanesePhrases =
+      [
+        {
+          "phrase": "안녕하세요",
+          "pr": "annyeonghaseyo",
+          "en": "Hello"
+        },
+        {
+          "phrase": "감사합니다",
+          "pr": "gamsahabnida",
+          "en": "Thank you"
+        },
+        {
+          "phrase": "죄송합니다",
+          "pr": "joesonghabnida",
+          "en": "I'm sorry"
+        },
+        {
+          "phrase": "주세요",
+          "pr": "juseyo",
+          "en": "Please give me..."
+        },
+        {
+          "phrase": "이거 얼마예요?",
+          "pr": "igeo eolmayeyo?",
+          "en": "How much is this?"
+        },
+        {
+          "phrase": "화장실 어디예요?",
+          "pr": "hwajangsil eodiyeyo?",
+          "en": "Where is the restroom?"
+        },
+        {
+          "phrase": "도와주세요",
+          "pr": "dowajuseyo",
+          "en": "Please help me"
+        },
+        {
+          "phrase": "네 / 아니요",
+          "pr": "ne / aniyo",
+          "en": "Yes / No"
+        },
+        {
+          "phrase": "잘 먹겠습니다",
+          "pr": "jal meokgessseumnida",
+          "en": "I will eat well (Thank you for the meal)"
+        },
+        {
+          "phrase": "안녕히 계세요",
+          "pr": "annyeonghi gyeseyo",
+          "en": "Goodbye (to someone staying)"
+        }
+      ];
+
+
+    // app.js
+
+    const jpPrompt = document.getElementById('englishPrompt');
+    const userSpeech = document.getElementById('userSpeech');
+    const statusText = document.getElementById('status-text');
+    const timerElement = document.getElementById('timer');
+    const container = document.getElementById('spaceContainer');
+
+    let currentIndex = 0;
+    const TEST_DURATION = 8000; // 8 seconds per phase
+    let testTimeout;
+
+    // Browser Check for Speech Recognition API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support Speech Recognition. Please try Google Chrome.");
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';       // Listens exclusively for Japanese
+    recognition.interimResults = false; // Only returns final phrase structures
+    recognition.maxAlternatives = 1;
+
+    function runTestCycle() {
+      // Clear any existing active timer systems
+      clearTimeout(testTimeout);
+      recognition.stop();
+
+      const currentItem = japanesePhrases[currentIndex];
+
+      // 1. Display English Clue
+      jpPrompt.innerHTML = `${currentItem.en}`;
+      userSpeech.textContent = "Listening... Speak now!";
+      statusText.textContent = "🎤 LISTENING";
+      statusText.className = "listening";
+
+      // 2. Start shrinking progress bar layout animation
+      timerElement.classList.remove('animate-timer');
+      void timerElement.offsetWidth;
+      timerElement.classList.add('animate-timer');
+
+      // 3. Open Microphone stream
+      try {
+        recognition.start();
+      } catch (e) { /* Ignore instances where mic is already running */ }
+
+      // 4. Force failure timeout structure if user says nothing within the 8 seconds
+      testTimeout = setTimeout(() => {
+        recognition.stop();
+        evaluateAnswer(""); // Sent empty string if timed out
+      }, TEST_DURATION);
+    }
+
+    // Evaluate what the user said
+    function evaluateAnswer(spokenText) {
+      const currentItem = japanesePhrases[currentIndex];
+
+      // Sanitize both strings (remove punctuation or spaces)
+      const cleanSpoken = spokenText.replace(/[、。！/ ？ __ \s]/g, "");
+      const cleanTarget = currentItem.phrase.replace(/[、。！？/ __ \s]/g, "");
+
+      userSpeech.textContent = spokenText ? `You said: "${spokenText}"` : "Time's up! No voice detected.";
+
+      if (cleanSpoken === cleanTarget) {
+        statusText.textContent = "✨ CORRECT!";
+        statusText.className = "correct";
+      } else {
+        statusText.textContent = `❌ WRONG! Answer: ${currentItem.phrase} : ${currentItem.pr}`;
+        statusText.className = "incorrect";
+      }
+
+      // Prep the next card after a 3 second delay to read verification feedback
+      currentIndex = (currentIndex + 1) % japanesePhrases.length;
+      setTimeout(runTestCycle, 3000);
+    }
+
+    // Audio Engine Result Processing Listener
+    recognition.onresult = (event) => {
+      clearTimeout(testTimeout); // Stop the timeout countdown because user spoke
+      const resultText = event.results[0][0].transcript;
+      evaluateAnswer(resultText);
+    };
+
+    // Error handling (e.g. user denies microphone permissions)
+    recognition.onerror = (event) => {
+      if (event.error === 'no-speech') {
+        // If recognition captures nothing, let the 8-second interval timeout naturally evaluate it
+        return;
+      }
+      console.log("Speech Error: ", event.error);
+    };
+
+    // Shooting Stars setup
+    function createShootingStar() {
+      const star = document.createElement('div');
+      star.className = 'shooting-star';
+      star.style.top = `${Math.random() * -50}px`;
+      star.style.left = `${Math.random() * 420}px`;
+      const duration = Math.random() * 2 + 1.5;
+      star.style.animationDuration = `${duration}s`;
+      container.appendChild(star);
+      setTimeout(() => star.remove(), duration * 1000);
+    }
+
+    function spawnLoop() {
+      createShootingStar();
+      setTimeout(spawnLoop, Math.random() * 3000 + 1000);
+    }
+
+    // Start test immediately on user engagement / click (Security restriction for mic access)
+    document.body.addEventListener('click', () => {
+      if (statusText.textContent === "Preparing...") {
+        runTestCycle();
+        spawnLoop();
+      }
+    }, { once: true });
+
+
+
+  </script>
+</body>
+
+</html>
